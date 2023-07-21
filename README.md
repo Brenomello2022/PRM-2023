@@ -1,3 +1,3 @@
 N/A.
 
-No Avaliable text.
+No Avaliable Text.
