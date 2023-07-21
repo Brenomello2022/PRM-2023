@@ -1,3 +1,3 @@
-Repositório da disciplina de Programação 2023.
+N/A.
 
-Professor: Libório de Oliveira Júnior
+No Avaliable text.
