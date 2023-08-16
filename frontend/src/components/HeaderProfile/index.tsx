@@ -5,8 +5,13 @@ import banner from '../../assets/img/profile_banner.png';
 import avatar from '../../assets/img/profile_avatar.png';
 
 import './style.css';
+import { FormattedDate, IntlProvider } from "react-intl";
 
-function HeaderProfile() {
+type HeaderProfileProps = {
+    user: any
+}
+
+function HeaderProfile({user}: HeaderProfileProps) {
     return (
         <Box id="header-profile">
 
@@ -15,28 +20,27 @@ function HeaderProfile() {
             </Box>
 
             <Box className="header-profile-detail">
-                <Avatar alt="Fulano de Tal" style={{width: 128, height: 128}} src={avatar} 
+                <Avatar alt={user.fullname} style={{width: 128, height: 128}} src={avatar} 
                 className="header-profile-detail-avatar"/>
 
                 <Box className="header-profile-detail-text">
                     <Typography variant="h5">
-                        Fulano de Tal
+                        {user.fullname}
                     </Typography>
 
-                    <Typography variant="subtitlel" component="h6">
-                        @fulanodetal
+                    <Typography variant="subtitle1" component="h6">
+                        @{user.username}
                     </Typography>
 
-                    <Typography variant="subtitlel" component="p">
-                        Lorem ipsum dolor, sit amet consectetur adipisicing elit. 
-                        Obcaecati natus quam ratione molestiae laboriosam?
-                        Illo nesciunt blanditiis, accusamus veritatis porro repellendus,
-                        expedita voluptatem, optio eos accusantium quia error aspernatur nostrum!
+                    <Typography variant="subtitle1" component="p">
+                        {user.description}
                     </Typography>
 
                     <Typography variant="caption">
                         <CalendarMonthOutlined />
-                        Entrou em 14 de Agosto de 2023
+                        <IntlProvider locale="pt-BR">
+                        Entrou em <FormattedDate value={user.creatdAt} month="long" year="numeric"></FormattedDate>
+                        </IntlProvider>
                     </Typography>
                 </Box>
             </Box>
