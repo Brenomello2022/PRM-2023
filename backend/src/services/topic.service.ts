@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Topic } from "src/entities/topic.entity";
+import { ApplicationException } from "src/exception";
 import { Repository } from "typeorm";
 
 @Injectable()
@@ -19,12 +20,23 @@ export class TopicService {
         return this.repository.findOneBy({id: id})
     }
 
-    create(user: Topic): Promise<Topic> {
-        return this.repository.save(user);
+    create(topic: Topic): Promise<Topic> {
+        return this.repository.save(topic);
     }
 
     async delete(id: number): Promise<void> {
         await this.repository.delete(id);
     }
 
+    async update(id: number, topic: Topic): Promise<Topic> {
+
+        const found = await this.repository.findOneBy({id: id})
+
+        if (!found) {
+           throw new ApplicationException('Topic not found', 404)
+        }
+        topic.id = id;
+
+        return this.repository.save(topic);
+   }
 }
