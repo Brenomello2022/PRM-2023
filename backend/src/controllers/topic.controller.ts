@@ -1,8 +1,10 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Delete, HttpCode, HttpException, HttpStatus, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Delete, HttpCode, HttpException, 
+HttpStatus, Put, UseGuards, UseInterceptors, ClassSerializerInterceptor } from "@nestjs/common";
 import { Topic } from "src/entities/topic.entity";
 import { AuthGuard } from "src/guards/auth.guard";
 import { TopicService } from "src/services/topic.service";
 
+@UseInterceptors(ClassSerializerInterceptor)
 @Controller('topics')
 export class TopicController {
 
