@@ -31,9 +31,20 @@ function SignUpPage(){
         event.preventDefault();
 
         setLoading(true);
+        setMessageError('');
+        setMessageSuccess('');
 
-        try {
+        try { 
             await register(userForm)
+
+            setUserForm({ 
+                fullname: '',
+                username: '',
+                password: '',
+                description: '' 
+            })
+
+            setMessageSuccess('Usuário criado com sucesso!');
         } catch (e) {
             const error = e as Error
             setMessageError(String(error.message));
@@ -62,7 +73,7 @@ function SignUpPage(){
                             label="Nome Completo"
                             required
                             fullWidth
-                            value={userForm.fullname}
+                            value={ userForm.fullname }
                             onChange={event => 
                                 setUserForm({...userForm, fullname: 
                                 (event.target as HTMLInputElement).value})}
@@ -72,7 +83,7 @@ function SignUpPage(){
                             label="Usuário"
                             required
                             fullWidth
-                            value={userForm.username}
+                            value={ userForm.username }
                             onChange={event => 
                                 setUserForm({...userForm, username: 
                                 (event.target as HTMLInputElement).value})}
@@ -83,9 +94,10 @@ function SignUpPage(){
                             required
                             fullWidth
                             type="password"
-                            value={userForm.password}
+                            value={ userForm.password }
                             onChange={event => 
-                                setUserForm({...userForm, password: (event.target as HTMLInputElement).value})}
+                                setUserForm({...userForm, password: 
+                                (event.target as HTMLInputElement).value})}
                         />
 
                         <LoadingButton 
@@ -107,7 +119,7 @@ function SignUpPage(){
                         </Typography>
 
                         <Typography variant="subtitle1">
-                            Já não tem uma conta TOPIC?
+                            Já tem uma conta TOPIC?
                         </Typography>
 
                         <Button 
