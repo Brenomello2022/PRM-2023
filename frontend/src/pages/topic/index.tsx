@@ -1,29 +1,68 @@
-import { Alert, Box, Snackbar } from "@mui/material";
+import { Alert, Box, Button, Fab, Snackbar, Tab, Tabs, TextField } from "@mui/material";
 import HeaderProfile from "../../components/HeaderProfile";
 import TopicList from "../../components/TopicList";
-import { useEffect, useState } from "react";
+import { SyntheticEvent, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../../hook/useAuth";
-import { getProfileByUsename } from "../../services";
+import { getProfileByUsername, getTopicsByUsername } from "../../services";
+import { ITopic, IUser } from "../../@types";
+import AddIcon from "@mui/icons-material/Add";
+import { LoadingButton } from "@mui/lab";
 
 function TopicPage() {
 
+    // PROFILE
     const { user } = useAuth();
     const params = useParams();
+    const [profile, setProfile] = useState<IUser>({} as IUser);
 
-    const [profile, setProfile] = useState({});
-    const [messageError, setMessageError] = useState('')
+    // STATE
+    const [messageError, setMessageError] = useState('');
+    const [messageSuccess, setMessageSuccess] = useState('')
+    const [loading, setLoading] = useState(false)
+
+    // TOPICS
+    const [topics, setTopics] = useState([]);
+    const [profileTopics, setProfileTopics] = useState([]);
+
+    // TABS
+    const [tab, setTab] = useState(2)
+
+    function handleTabChange(event: SyntheticEvent, newValue: number) {
+        setTab(newValue)
+    }
+
+    // NEW TOPIC
+    const [showForm, setShowForm] = useState(false);
+    const [topicForm, setTopicForm] = useState<ITopic>({} as ITopic)
+    function handleShowForm() {
+        setShowForm(true);
+        setTopicForm({ 
+            content: '',
+            owner: user
+        })
+    }
+
+    function handleCreateTopic() {
+        setLoading(true)
+
+        //TO-DO: Chama a service para enviar para a API.
+    }
 
     useEffect(() => {
 
         const username = params.username ? params.username : user?.username;
 
         if (username) {
-            getProfileByUsename(username)
+            getProfileByUsername(username)
             .then(result => {
                 setProfile(result.data)
 
-                
+                // Carrega topics do usuário (owner)
+                return getTopicsByUsername(username)
+                    .then(result => {
+                        setProfileTopics(result.data)
+                    })
             })
             .catch(error => {
                 setMessageError(String(error.message))
@@ -32,57 +71,89 @@ function TopicPage() {
 
     }, [])
 
-    const topics = [
-        {
-            owner: {fullname: 'Helena Cristina'},
-            content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
-            comments: 150,
-            reposts: 290,
-            likes: 300,
-            createdAt: '2023-08-15 21:34:00'
-        },
-
-        {
-            owner: {fullname: 'Felisberto Jonas'},
-            content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
-            comments: 67,
-            reposts: 90,
-            likes: 101,
-            createdAt: '2023-08-11 09:34:00'
-        },
-
-        {
-            owner: {fullname: 'Bernardo Lucas'},
-            content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
-            comments: 100,
-            reposts: 104,
-            likes: 114,
-            createdAt: '2023-08-01 15:34:00'
-        },
-
-        {
-            owner: {fullname: 'Osvaldo Karlos'},
-            content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
-            comments: 45,
-            reposts: 76,
-            likes: 83,
-            createdAt: '2023-08-08 10:34:00'
-        },
-
-        {
-            owner: {fullname: 'Iliane Jussara'},
-            content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
-            comments: 120,
-            reposts: 111,
-            likes: 178,
-            createdAt: '2023-08-06 07:34:00'
+    useEffect(() => {
+        if (tab == 1) {
+            getTopicsByUsername()
+            .then(result => {
+                setTopics(result.data)
+            })
+            .catch(error => {
+                setMessageError(String(error.message))
+            })
         }
-    ]
+    }, [tab])
 
     return (
         <Box id="topic-page" display="flex" flexDirection="column" alignItems="center" gap={3}>
+
             <HeaderProfile user={profile} />
-            <TopicList items={topics}/>
+
+            <Box className="topic-page-content" style={{width: '64rem'}}>
+
+                {profile.id == user?.id && (
+                    <Tabs value={tab} onChange={handleTabChange}>
+                        <Tab value={1} label="Tópicos" />
+                        <Tab value={2} label="Meus Tópicos" />
+                    </Tabs>
+                )}
+                
+                {tab == 2 ? (
+                    <Box display="flex" flexDirection="column" alignItems="end">
+                        {!showForm && (
+                            <Fab 
+                                color="primary" style={{marginTop: '-3.5rem'}}
+                                onClick={handleShowForm}>  
+                                <AddIcon />
+                            </Fab>
+                        )}
+
+                        {showForm && (
+                            <Box 
+                                display="flex" flexDirection="column" alignItems="end"
+                                gap={3} style={{marginTop: '2rem', width: '100%'}}>
+
+                                <TextField
+                                label="Novo Tópico"
+                                placeholder="No que você está pensando?"
+                                multiline
+                                fullWidth
+                                autoFocus
+                                required
+                                rows={4}
+                                disabled={loading}
+                                inputProps={{maxLength: 250}}
+                                />
+
+                                <Box  display="flex" flexDirection="row" gap={3}>
+
+                                    <Button
+                                        size="small"
+                                        disabled={loading}
+                                        onClick={() => setShowForm(false)}>
+                                        Cancelar
+                                    </Button>
+
+                                    <LoadingButton
+                                        variant="contained"
+                                        size="small"
+                                        loading={loading}
+                                        onClick={handleCreateTopic}>
+                                        Comentar
+                                    </LoadingButton>
+
+                                </Box>
+                            </Box>
+                        )}
+
+                        <TopicList items={profileTopics}/>
+
+                    </Box>
+
+                ) : (
+                    <TopicList items={topics}/>
+                )}
+
+            </Box>
 
             <Snackbar
                 open={Boolean(messageError)}

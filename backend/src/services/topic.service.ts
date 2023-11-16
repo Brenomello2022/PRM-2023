@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Topic } from "src/entities/topic.entity";
+import { User } from "src/entities/user.entity";
 import { ApplicationException } from "src/exception";
 import { Repository } from "typeorm";
 
@@ -13,11 +14,28 @@ export class TopicService {
     ) {}
 
     findAll(): Promise<Topic[]> {
-        return this.repository.find();
+        return this.repository.find({
+            order: {
+                id: 'DESC'
+            }
+        });
     }
 
     findById(id: number): Promise<Topic> {
         return this.repository.findOneBy({id: id})
+    }
+
+    findByUser(user: User): Promise<Topic[]> {
+        return this.repository.find({
+            where: {
+                owner: {
+                    id: user.id
+                }
+            },
+            order: {
+                id: 'DESC'
+            }
+        });
     }
 
     create(topic: Topic): Promise<Topic> {
@@ -35,6 +53,8 @@ export class TopicService {
         if (!found) {
            throw new ApplicationException('Topic not found', 404)
         }
+        
+        //Garante que o objeto substituido terá o mesmo ID da requisição
         topic.id = id;
 
         return this.repository.save(topic);
