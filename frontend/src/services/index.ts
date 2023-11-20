@@ -1,5 +1,5 @@
 import axios from "axios";
-import { ICredential, IUser } from "../@types";
+import { ICredential, ITopic, IUser } from "../@types";
 
 // Busca o token da Local Storage
 const token = localStorage.getItem('token');
@@ -19,7 +19,7 @@ const signIn = (credential: ICredential) => api.post(`${_AUTH}/signin`, credenti
 const signUp = (user: IUser) => api.post(`${_AUTH}/signup`, user);
 
 // PROFILE
-const getProfileByUsername = (username: string) => api.get(`${_PROFILE}/${username}`)
+const getProfileByUsername = (username: string) => api.get(`${_PROFILE}/${username}`);
 
 // TOPICS
 const getTopicsByUsername = (username?: string) => {
@@ -27,9 +27,12 @@ const getTopicsByUsername = (username?: string) => {
     return api.get(`${_TOPICS}${queryParam}`)
 }
 
+const createTopic = (topic: ITopic) => (api.post(_TOPICS, topic));
+
 export {
     signIn, 
     signUp, 
     getProfileByUsername,
-    getTopicsByUsername
+    getTopicsByUsername,
+    createTopic
 }
