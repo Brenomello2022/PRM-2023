@@ -6,6 +6,4 @@ import { UserModule } from "src/users/user.module";
     imports: [ UserModule ],
     controllers: [ ProfileController ]
 })
-export class ProfileModule {
-
-}
+export class ProfileModule {}

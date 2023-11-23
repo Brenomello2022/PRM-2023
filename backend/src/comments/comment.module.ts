@@ -17,6 +17,4 @@ import { Topic } from "src/topics/topic.entity";
     providers: [ CommentService ],
     controllers: [ CommentController ]
 })
-export class CommentModule {
-
-}
+export class CommentModule {}

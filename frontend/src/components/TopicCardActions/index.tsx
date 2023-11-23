@@ -1,4 +1,4 @@
-import { ChatBubble, Repeat, Favorite } from "@mui/icons-material";
+import { ChatBubble, Repeat, Favorite, ChatBubbleOutline } from "@mui/icons-material";
 import { Button } from "@mui/material";
 import { ITopic } from "../../@types";
 
@@ -6,18 +6,34 @@ import { ITopic } from "../../@types";
 import "./style.css"
 
 type TopicCardActionsProps = {
-    topic: ITopic;
+    commented: boolean,
+    totalComments: number,
+    clickComments: () => void,
 }
 
 function TopicCardActions({ 
-    topic
+     commented,
+     totalComments,
+     clickComments
 }: TopicCardActionsProps) {
     return (
         <div id="topic-card-actions">
 
-            <Button variant="text" size="small" startIcon={<ChatBubble />}>3</Button>
-            <Button variant="text" size="small" startIcon={<Repeat />}>33</Button>
-            <Button variant="text" size="small" startIcon={<Favorite />}>33</Button>
+            <Button 
+                variant="text" 
+                size="small" 
+                startIcon={ commented ? <ChatBubble /> : <ChatBubbleOutline />}
+                onClick={clickComments}
+                >
+                {totalComments}
+            </Button>
+
+            <Button variant="text" size="small" startIcon={<Repeat />}>
+                33
+            </Button>
+            <Button variant="text" size="small" startIcon={<Favorite />}>
+                33
+            </Button>
 
         </div>
     )
