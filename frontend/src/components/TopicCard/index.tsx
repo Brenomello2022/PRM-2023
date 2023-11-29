@@ -1,31 +1,36 @@
+import { useEffect, useState } from "react";
+import { IComment, ITopic, IUser } from "../../@types";
 import TopicCardActions from "../TopicCardActions";
 import TopicCardBody from "../TopicCardBody";
 import TopicCardHeader from "../TopicCardHeader";
-import { IComment, ITopic } from "../../@types";
-import { useEffect, useState } from "react";
 import { Alert, Snackbar } from "@mui/material";
 import TopicComment from "../TopicComment";
+import { createComment, createLike, createTopic, getCommentsByTopic, getLikesByTopic, getRepostsByTopic, getTopicById } from "../../services";
 import { useAuth } from "../../hook/useAuth";
-import { createComment, getCommentsByTopic } from "../../services";
+import { useTopic } from "../../hook/useTopic";
 
 type TopicCardProps = {
-    topic: ITopic;
+    topic: ITopic
 }
 
 function TopicCard({
     topic
 }: TopicCardProps) {
-    // USER
-    const {user} = useAuth();
 
-    // STATES - CONTROLL
-    const [messageError, setMessageError] = useState ('')
-    const [messageSuccess, setMessageSuccess] = useState ('')
+    //USER
+    const { user } = useAuth();
 
-    // COMMENTS 
-    const [showComments, setShowComments] = useState (false)
-    const [comment, setComment] = useState<IComment>({} as IComment)
-    const [comments, setComments] = useState<IComment[]>([])
+    //TOPIC
+    const { topics, setTopics } = useTopic();
+
+    //STATES - CONTROL
+    const [messageError, setMessageError] = useState('');
+    const [messageSuccess, setMessageSuccess] = useState('');
+
+    //COMMENTS
+    const [showComments, setShowComments] = useState(false);
+    const [comment, setComment] = useState<IComment>({} as IComment);
+    const [comments, setComments] = useState<IComment[]>([]);
     const [totalComments, setTotalComments] = useState(0)
 
     const handleClickComment = () => {
@@ -33,6 +38,7 @@ function TopicCard({
     }
     const postComment = async (contentText: string): Promise<void> => {
 
+        //Preparar um comentário para ser enviado
         const commentForm: IComment = {
             user: user,
             topic: topic,
@@ -55,13 +61,66 @@ function TopicCard({
             .catch(error => {
                 setMessageError(error.message)
             })
+
     }
-    
-    // REPOSTS
 
-    // LIKES
+    //REPOSTS
+    const [topicReposted, setTopicReposted] = useState<ITopic>();
+    const [reposters, setReposters] = useState<IUser[]>([]);
+    const handleClickRepost = () => {
 
-    // EFFECT
+        //Preparar um Topic para ser enviado pro servidor
+        const repostForm: ITopic = {
+            owner: user,
+            repost: topic,
+            content: topic.content
+        }
+
+        //Chamar a service que manda o topic para servidor
+        createTopic(repostForm)
+            .then(result => {
+                setReposters([...reposters, result.data.owner])
+
+                setTopics([result.data, ...topics])
+
+                setMessageSuccess('Tópico repostado com sucesso!');
+                setTimeout(() => {
+                    setMessageSuccess('');
+                }, 5000);
+            })
+            .catch(error => {
+                setMessageError(error.message)
+            });
+    }
+
+    //LIKES
+    const [showLikes, setShowLikes] = useState (false)
+    const [likes, setLikes] = useState<ITopic>();
+    const [totalLikes, setTotalLikes] = useState(0)
+    const handleClickLike = () => {
+        setShowLikes(!showLikes);
+    }
+        const likeForm: ITopic = {
+            user: user,
+            topic: topic
+        }
+
+        createLike(likeForm)
+            .then(result => {
+                setLikes(result.data);
+                setTotalLikes(totalLikes+1);
+
+                setMessageSuccess('Conteúdo curtido com sucesso!');
+                setTimeout(() => {
+                    setMessageSuccess('');
+                }, 5000);
+
+            })
+            .catch(error => {
+                setMessageError(error.message)
+            })
+
+    //EFFECT
     useEffect(() => {
 
         //TO-DO: Comments
@@ -81,64 +140,85 @@ function TopicCard({
                 setMessageError(error.message);
             });
 
-        //TO-DO: REPOSTS
+        //TO-DO: Reposts
+        if (topic.topic_id) {
+            getTopicById(topic.topic_id)
+                .then(result => {
+                    setTopicReposted(result.data)
+                })
+                .catch(error => {
+                    setMessageError(error.message);
+                });
+        }
+        
+        getRepostsByTopic(topic)
+            .then(result => {
+                const dados: ITopic[] = result.data;
+                
+                const users: IUser[] = []
+                dados.forEach(topic => {
+                    if (topic.owner) {
+                        users.push(topic.owner)
+                    }
+                })
+                setReposters(users);
+            })
+            .catch(error => {
+                setMessageError(error.message);
+            });
 
-        //TO-DO: LIKES
-
+        //TO-DO: Likes
+        getLikesByTopic(topic)
+            .then(result => {
+                const dados: ITopic[] = result.data
+                setTotalLikes(dados.length)
+            })
+            .catch(error => {
+                setMessageError(error.message);
+            });
     }, []);
 
     return (
         <div id="topic-card">
             <TopicCardHeader 
-                createdAt={topic.createdAt} 
-                onwer={topic.owner}
-            />   
+                createdAt={topic.createdAt}
+                owner={topic.owner}
+             />
 
             <TopicCardBody 
-                content={topic.content}
-            />
+                topicReposted={topicReposted}
+                content={topic.content} />
 
             <TopicCardActions 
                 commented={Boolean(comment.user)}
                 totalComments={totalComments}
-                clickComments={handleClickComment}
-            />
+                clickComment={handleClickComment}
+                reposters={reposters}
+                clickRepost={handleClickRepost}
+                likers={likers}
+                clickLike={handleClickLike}
+                />
 
             {showComments && (
                 <TopicComment 
-                    comments={comments}
-                    postComment={postComment}
-                />
+                    comments={ comments }
+                    postComment={postComment} />
             )}
 
             <Snackbar
                 open={Boolean(messageError)}
-                autoHideDuration={6000}
-                anchorOrigin={{vertical: 'top', horizontal: 'right'}}>
-                
-                <Alert 
-                    severity="error" 
-                    variant="filled"
-                    onClose={() => setMessageError('')}
-                    >
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+                <Alert severity="error" elevation={6} variant="filled" onClose={() => setMessageError('')}>
                     {messageError}
                 </Alert>
-                
             </Snackbar>
 
             <Snackbar
                 open={Boolean(messageSuccess)}
-                autoHideDuration={6000}
-                anchorOrigin={{vertical: 'top', horizontal: 'right'}}>
-                
-                <Alert 
-                    severity="success" 
-                    variant="filled"
-                    onClose={() => setMessageSuccess('')}
-                    >
-                    {messageSuccess}    
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+                <Alert severity="success" elevation={6} variant="filled" onClose={() => setMessageSuccess('')}>
+                    {messageSuccess}
                 </Alert>
-                
             </Snackbar>
         </div>
     )
